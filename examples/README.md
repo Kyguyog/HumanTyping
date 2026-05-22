@@ -20,6 +20,9 @@ python examples/simple_example.py
 # Full Playwright example
 python examples/playwright_example.py
 
+# Playwright sync example
+python examples/playwright_sync_example.py
+
 # Selenium example
 python examples/selenium_example.py
 ```
@@ -61,6 +64,22 @@ A more complete example with error handling and validation.
 **Run it:**
 ```bash
 python examples/playwright_example.py
+```
+
+---
+
+### `playwright_sync_example.py` - Playwright Sync Support
+
+Shows how to use HumanTyping with Playwright's synchronous API.
+
+**Features:**
+- Synchronous Playwright API (`type_sync`)
+- Compatible with Playwright sync Locator and ElementHandle
+- Same realistic behavior as async Playwright
+
+**Run it:**
+```bash
+python examples/playwright_sync_example.py
 ```
 
 ---

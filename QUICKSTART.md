@@ -148,6 +148,33 @@ typer = HumanTyper(wpm=70)
 await typer.type(page.locator("#username"), "john_doe")
 ```
 
+#### `type_sync(element, text)`
+
+Types text into a Playwright sync Locator/ElementHandle or Selenium WebElement
+with human-like behavior.
+
+**Parameters:**
+- `element`: Playwright sync Locator/ElementHandle or Selenium WebElement
+- `text` (str): Text to type
+
+**Playwright sync example:**
+```python
+from playwright.sync_api import sync_playwright
+from humantyping import HumanTyper
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=False)
+    page = browser.new_page()
+    page.goto("https://example.com")
+
+    typer = HumanTyper(wpm=70)
+    field = page.locator("#username")
+    field.click()
+    typer.type_sync(field, "john_doe")
+
+    browser.close()
+```
+
 ## Troubleshooting
 
 ### "Element is not focused"
@@ -172,6 +199,7 @@ typer = HumanTyper(wpm=120)
 
 Check the `examples/` folder for:
 - `playwright_example.py` - Basic Playwright integration
+- `playwright_sync_example.py` - Basic Playwright sync integration
 - `selenium_example.py` - Selenium integration (sync)
 
 ## Support

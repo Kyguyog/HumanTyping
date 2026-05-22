@@ -207,6 +207,25 @@ if __name__ == "__main__":
 2. Create an instance: `typer = HumanTyper(wpm=70)`
 3. Type: `await typer.type(element, "your text")`
 
+### Playwright (Sync)
+
+```python
+from playwright.sync_api import sync_playwright
+from humantyping import HumanTyper
+
+with sync_playwright() as p:
+    browser = p.chromium.launch(headless=False)
+    page = browser.new_page()
+    page.goto("https://example.com")
+
+    typer = HumanTyper(wpm=70)
+    search_box = page.locator("input[name='search']")
+    search_box.click()
+    typer.type_sync(search_box, "Typing with Playwright sync")
+
+    browser.close()
+```
+
 
 ### Selenium & Appium (Sync)
 

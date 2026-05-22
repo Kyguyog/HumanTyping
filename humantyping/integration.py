@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 import asyncio
+from collections.abc import Iterable
 from typing import Any
 
 from .typer import MarkovTyper
@@ -12,6 +13,15 @@ def _extract_char(action: str) -> str:
     first_quote = action.index("'")
     last_quote = action.rindex("'")
     return action[first_quote + 1:last_quote]
+
+
+def _typing_history(text: str, wpm: float, layout: str) -> Iterable[tuple[float, str, Any]]:
+    if not isinstance(text, str) or len(text) == 0:
+        raise ValueError("text must be a non-empty string")
+
+    typer = MarkovTyper(text, target_wpm=wpm, layout=layout)
+    _, history = typer.run()
+    return history
 
 
 class HumanTyper:
@@ -46,15 +56,9 @@ class HumanTyper:
             await input_box.click()
             await typer.type(input_box, "Hello world!")
         """
-        if not isinstance(text, str) or len(text) == 0:
-            raise ValueError("text must be a non-empty string")
-
-        typer = MarkovTyper(text, target_wpm=self.wpm, layout=self.layout)
-        _, history = typer.run()
-
         last_time = 0.0
 
-        for t, action, _ in history:
+        for t, action, _ in _typing_history(text, self.wpm, self.layout):
             delay = t - last_time
             if delay > 0:
                 await asyncio.sleep(delay)
@@ -87,16 +91,11 @@ class HumanTyper:
             search_box.click()  # Ensure focus
             typer.type_appium(driver, "Hello Appium")
         """
-        if not isinstance(text, str) or len(text) == 0:
-            raise ValueError("text must be a non-empty string")
+        history = _typing_history(text, self.wpm, self.layout)
+        last_time = 0.0
 
         from selenium.webdriver.common.action_chains import ActionChains
         from selenium.webdriver.common.keys import Keys
-
-        typer = MarkovTyper(text, target_wpm=self.wpm, layout=self.layout)
-        _, history = typer.run()
-
-        last_time = 0.0
 
         for t, action, _ in history:
             delay = t - last_time
@@ -115,29 +114,55 @@ class HumanTyper:
                 char = _extract_char(action)
                 actions.send_keys(char).perform()
 
-    def type_sync(self, selenium_element: Any, text: str) -> None:
+    def type_sync(self, element: Any, text: str) -> None:
         """
-        Types text into a Selenium WebElement with realistic human behavior.
+        Types text into a Playwright sync element or Selenium WebElement with
+        realistic human behavior.
 
         Args:
-            selenium_element: The Selenium WebElement to type into.
+            element: The Playwright sync Locator/ElementHandle or Selenium
+                WebElement to type into.
             text: The text to type with human-like behavior.
 
         Example:
             typer = HumanTyper(wpm=65)
-            input_box = driver.find_element(By.NAME, "search")
+            input_box = page.locator("input[name='search']")
             input_box.click()
-            typer.type_sync(input_box, "Hello Selenium!")
+            typer.type_sync(input_box, "Hello Playwright sync!")
         """
-        if not isinstance(text, str) or len(text) == 0:
-            raise ValueError("text must be a non-empty string")
+        if hasattr(element, "press"):
+            self._type_playwright_sync(element, text)
+            return
+
+        self._type_selenium_sync(element, text)
+
+    def _type_playwright_sync(self, page_element: Any, text: str) -> None:
+        history = _typing_history(text, self.wpm, self.layout)
+        last_time = 0.0
+
+        for t, action, _ in history:
+            delay = t - last_time
+            if delay > 0:
+                time.sleep(delay)
+            last_time = t
+
+            if "BACKSPACE" in action:
+                page_element.press("Backspace")
+            elif "TYPED_SWAP" in action:
+                for char in _extract_char(action):
+                    page_element.press(char)
+            elif "TYPED_ERROR" in action:
+                char = _extract_char(action)
+                page_element.press(char)
+            elif "TYPED" in action:
+                char = _extract_char(action)
+                page_element.press(char)
+
+    def _type_selenium_sync(self, selenium_element: Any, text: str) -> None:
+        history = _typing_history(text, self.wpm, self.layout)
+        last_time = 0.0
 
         from selenium.webdriver.common.keys import Keys
-
-        typer = MarkovTyper(text, target_wpm=self.wpm, layout=self.layout)
-        _, history = typer.run()
-
-        last_time = 0.0
 
         for t, action, _ in history:
             delay = t - last_time
