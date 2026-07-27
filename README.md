@@ -138,6 +138,18 @@ python -c "from humantyping import HumanTyper; print('✓ Installation successfu
 
 ## 🚀 Usage
 
+## Chrome Mode (Types in browser)
+
+Run Gui
+```bash
+uv run python gui_typer.py
+```
+
+Open Browser
+```bash
+
+```
+
 ### Demo Mode (Visual Simulation)
 
 Watch typing happen in real-time with errors and corrections:
